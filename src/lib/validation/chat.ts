@@ -12,7 +12,7 @@ export const ChatMessageSchema = z.object({
 });
 
 export const ChatRequestSchema = z.object({
-  messages: z.array(ChatMessageSchema).min(1, 'At least one message is required'),
+  messages: z.array(ChatMessageSchema).min(1, 'At least one message is required').max(50, 'Too many messages in conversation'),
 });
 
 export type ChatMessage = z.infer<typeof ChatMessageSchema>;
