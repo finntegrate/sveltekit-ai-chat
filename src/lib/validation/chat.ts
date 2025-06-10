@@ -1,9 +1,14 @@
 import { z } from 'zod';
 
+// Constants for validation limits
+export const MAX_MESSAGE_LENGTH = 500; // Maximum length for a single chat message
+
 // Zod schema for validation
 export const ChatMessageSchema = z.object({
   role: z.enum(['system', 'user', 'assistant']),
-  content: z.string().min(1, 'Message content cannot be empty'),
+  content: z.string()
+    .min(1, 'Message content cannot be empty')
+    .max(MAX_MESSAGE_LENGTH, `Message content cannot exceed ${MAX_MESSAGE_LENGTH} characters`),
 });
 
 export const ChatRequestSchema = z.object({
