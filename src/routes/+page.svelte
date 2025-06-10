@@ -132,10 +132,12 @@
           {#each chat.messages as message, messageIndex (messageIndex)}
             <div class="chat {message.role === 'user' ? 'chat-end' : 'chat-start'}">
               <div class="chat-image avatar">
-                <div class="w-16 h-16 bg-{message.role === 'user' ? 'primary' : 'secondary'} flex items-center justify-center">
-                  <span class="text-white text-xl font-bold">
-                    {message.role === 'user' ? '👤' : '🤖'}
-                  </span>
+                <div class="avatar-placeholder">
+                  <div class="{message.role === 'user' ? 'bg-primary text-primary-content' : 'bg-secondary text-secondary-content'} w-16 h-16 rounded-full">
+                    <span class="text-2xl">
+                      {message.role === 'user' ? '👤' : '🤖'}
+                    </span>
+                  </div>
                 </div>
               </div>
               <div class="chat-header">
