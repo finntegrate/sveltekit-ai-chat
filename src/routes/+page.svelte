@@ -221,13 +221,17 @@
             <button 
               type="submit" 
               class="btn btn-primary"
+              aria-label={isLoading ? "Sending message to AI assistant" : "Send message to AI assistant"}
+              aria-describedby={lastError ? "error-help-text" : undefined}
+              aria-disabled={isLoading || !chat.input?.trim() || (lastError && !lastError.canRetry)}
               disabled={isLoading || !chat.input?.trim() || (lastError && !lastError.canRetry)}
+              tabindex="0"
             >
               {#if isLoading}
-                <span class="loading loading-spinner loading-sm"></span>
+                <span class="loading loading-spinner loading-sm" aria-hidden="true"></span>
                 Sending...
               {:else}
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                 </svg>
                 Send
@@ -237,7 +241,7 @@
           
           <!-- Error help text -->
           {#if lastError}
-            <div class="text-xs text-error mt-2 px-1">
+            <div class="text-xs text-error mt-2 px-1" id="error-help-text">
               {#if lastError.canRetry}
                 Use the retry button above or clear the error to try again.
               {:else if retryCount >= MAX_RETRIES}
