@@ -16,24 +16,25 @@ const openai = createOpenAI({
 export class ChatService {
   private validateApiKey(): void {
     if (!OPENAI_API_KEY) {
-      console.error('OpenAI API key is not configured');
+      console.error('Required service configuration is missing');
       throw new ServiceError('Service configuration error. Please try again later.', 500);
     }
   }
 
   private handleAiError(error: any): never {
-    const message = error?.message || '';
+    const message = error?.message?.toLowerCase() || '';
+    const errorCode = error?.code || error?.status;
     
-    if (message.includes('rate limit')) {
+    if (errorCode === 429 || /rate.?limit/i.test(message)) {
       throw new RateLimitError('Rate limit exceeded. Please try again later.');
     }
     
-    if (message.includes('quota') || message.includes('billing')) {
+    if (errorCode === 402 || /quota|billing|insufficient.*funds/i.test(message)) {
       throw new QuotaExceededError('Service quota exceeded. Please try again later.');
     }
     
-    if (message.includes('invalid') || message.includes('authentication')) {
-      console.error('Authentication error with OpenAI API');
+    if (errorCode === 401 || /invalid.*key|authentication|unauthorized/i.test(message)) {
+      console.error('Required service configuration is missing');
       throw new AuthenticationError('Service authentication error. Please try again later.');
     }
 
