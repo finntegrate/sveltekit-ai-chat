@@ -213,6 +213,7 @@
               <input 
                 bind:value={chat.input} 
                 placeholder="Type your message here..."
+                aria-label="Type your message to send to the AI assistant"
                 class="input input-bordered w-full {lastError ? 'input-error' : ''}"
                 disabled={isLoading}
               />
