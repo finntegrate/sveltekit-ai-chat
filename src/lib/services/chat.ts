@@ -63,25 +63,39 @@ export class ChatService {
       this.handleAiError(error);
     }
   }
-  private handleAiError(error: any): never {
-    const message = error?.message?.toLowerCase() || '';
-    const errorCode = error?.code || error?.status || error?.statusCode;
+  private handleAiError(error: unknown): never {
+    const errorObj = error as {
+      message?: string;
+      code?: string | number;
+      status?: string | number;
+      statusCode?: string | number;
+      name?: string;
+      responseBody?: string | object;
+      data?: { error?: { code?: string; type?: string; message?: string; param?: string } };
+      url?: string;
+      isRetryable?: boolean;
+      responseHeaders?: Record<string, string>;
+      stack?: string;
+    };
+
+    const message = errorObj?.message?.toLowerCase() || '';
+    const errorCode = errorObj?.code || errorObj?.status || errorObj?.statusCode;
 
     // Extract clean error information for developers
     console.error('🚨 ============ AI SERVICE ERROR ============ 🚨');
     console.error('ERROR SUMMARY:');
-    console.error('  Type:', error?.name || 'Unknown');
+    console.error('  Type:', errorObj?.name || 'Unknown');
     console.error('  Status Code:', errorCode);
-    console.error('  Message:', error?.message);
+    console.error('  Message:', errorObj?.message);
 
     // Extract and display responseBody error details if available
-    if (error?.responseBody) {
+    if (errorObj?.responseBody) {
       console.error('📄 RESPONSE BODY ERROR DETAILS:');
       try {
         const responseData =
-          typeof error.responseBody === 'string'
-            ? JSON.parse(error.responseBody)
-            : error.responseBody;
+          typeof errorObj.responseBody === 'string'
+            ? JSON.parse(errorObj.responseBody)
+            : errorObj.responseBody;
 
         if (responseData?.error) {
           console.error('  OpenAI Error Code:', responseData.error.code);
@@ -89,22 +103,22 @@ export class ChatService {
           console.error('  OpenAI Error Message:', responseData.error.message);
           console.error('  OpenAI Error Param:', responseData.error.param);
         }
-      } catch (parseError) {
-        console.error('  Raw Response Body:', error.responseBody);
+      } catch {
+        console.error('  Raw Response Body:', errorObj.responseBody);
       }
     }
 
     // Display data.error if available (alternative error format)
-    if (error?.data?.error) {
+    if (errorObj?.data?.error) {
       console.error('📊 DATA ERROR DETAILS:');
-      console.error('  Code:', error.data.error.code);
-      console.error('  Type:', error.data.error.type);
-      console.error('  Message:', error.data.error.message);
+      console.error('  Code:', errorObj.data.error.code);
+      console.error('  Type:', errorObj.data.error.type);
+      console.error('  Message:', errorObj.data.error.message);
     }
 
     // Additional context
-    if (error?.url) {
-      console.error('🌐 REQUEST URL:', error.url);
+    if (errorObj?.url) {
+      console.error('🌐 REQUEST URL:', errorObj.url);
     }
 
     console.error('🔧 DEVELOPER ACTION REQUIRED:');
@@ -138,14 +152,14 @@ export class ChatService {
 
     // Detailed error dump for debugging
     console.error('FULL ERROR OBJECT FOR DEBUGGING:', {
-      name: error?.name,
-      message: error?.message,
+      name: errorObj?.name,
+      message: errorObj?.message,
       code: errorCode,
-      statusCode: error?.statusCode,
-      url: error?.url,
-      isRetryable: error?.isRetryable,
-      responseHeaders: error?.responseHeaders,
-      stack: error?.stack
+      statusCode: errorObj?.statusCode,
+      url: errorObj?.url,
+      isRetryable: errorObj?.isRetryable,
+      responseHeaders: errorObj?.responseHeaders,
+      stack: errorObj?.stack
     });
 
     throw new ServiceError('AI service temporarily unavailable. Please try again later.', 503);

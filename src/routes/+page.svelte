@@ -14,7 +14,7 @@
 
   // Initialize chat with error handling
   const chat = new Chat({
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       console.error('Chat error:', error);
       lastError = {
         message: getErrorMessage(error),
@@ -74,30 +74,36 @@
   }
 
   // User-friendly error message formatter
-  function getErrorMessage(error: any): string {
+  function getErrorMessage(error: unknown): string {
     if (!error) return 'An unknown error occurred';
 
     if (typeof error === 'string') return error;
 
-    if (error.message) {
+    // Type guard for error-like objects
+    const errorObj = error as { message?: string };
+
+    if (errorObj.message) {
       // Handle specific error types with user-friendly messages
-      if (error.message.includes('rate limit') || error.message.includes('429')) {
+      if (errorObj.message.includes('rate limit') || errorObj.message.includes('429')) {
         return 'Too many requests. Please wait a moment before trying again.';
       }
-      if (error.message.includes('quota') || error.message.includes('billing')) {
+      if (errorObj.message.includes('quota') || errorObj.message.includes('billing')) {
         return 'Service quota exceeded. Please try again later.';
       }
-      if (error.message.includes('network') || error.message.includes('fetch')) {
+      if (errorObj.message.includes('network') || errorObj.message.includes('fetch')) {
         return 'Network connection error. Please check your connection and try again.';
       }
-      if (error.message.includes('timeout')) {
+      if (errorObj.message.includes('timeout')) {
         return 'Request timed out. Please try again.';
       }
-      if (error.message.includes('unauthorized') || error.message.includes('authentication')) {
+      if (
+        errorObj.message.includes('unauthorized') ||
+        errorObj.message.includes('authentication')
+      ) {
         return 'Authentication error. Please refresh the page and try again.';
       }
 
-      return error.message;
+      return errorObj.message;
     }
 
     return 'An unexpected error occurred. Please try again.';
