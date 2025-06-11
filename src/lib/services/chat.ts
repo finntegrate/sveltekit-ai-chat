@@ -116,13 +116,15 @@ export class ChatService {
     };
 
     const message = errorObj?.message?.toLowerCase() || '';
-    const errorCode = errorObj?.code || errorObj?.status || errorObj?.statusCode;
+    const rawErrorCode = errorObj?.code || errorObj?.status || errorObj?.statusCode;
+    // Normalize error code to number for consistent comparison
+    const errorCode = rawErrorCode ? Number(rawErrorCode) : undefined;
 
     // Extract clean error information for developers
     console.error('🚨 ============ AI SERVICE ERROR ============ 🚨');
     console.error('ERROR SUMMARY:');
     console.error('  Type:', errorObj?.name || 'Unknown');
-    console.error('  Status Code:', errorCode);
+    console.error('  Status Code:', rawErrorCode, '(normalized:', errorCode, ')');
     console.error('  Message:', errorObj?.message);
 
     // Extract and display responseBody error details if available
@@ -191,7 +193,8 @@ export class ChatService {
     console.error('FULL ERROR OBJECT FOR DEBUGGING:', {
       name: errorObj?.name,
       message: errorObj?.message,
-      code: errorCode,
+      code: rawErrorCode,
+      normalizedCode: errorCode,
       statusCode: errorObj?.statusCode,
       url: errorObj?.url,
       isRetryable: errorObj?.isRetryable,
@@ -239,10 +242,13 @@ export class ChatService {
       console.error('Error in streamChat:', error);
 
       // If we get an authentication error, reset the cached state so we retest next time
-      if (error && typeof error === 'object' && 'code' in error && error.code === 401) {
-        console.log('Authentication error detected, resetting API key test cache');
-        ChatService.isApiKeyTested = false;
-        ChatService.apiKeyTestPromise = null;
+      if (error && typeof error === 'object' && 'code' in error) {
+        const errorCode = Number(error.code);
+        if (errorCode === 401) {
+          console.log('Authentication error detected, resetting API key test cache');
+          ChatService.isApiKeyTested = false;
+          ChatService.apiKeyTestPromise = null;
+        }
       }
 
       this.handleAiError(error);
