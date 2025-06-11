@@ -26,6 +26,7 @@ Everything you need to build a Svelte project, powered by [`sv`](https://github.
 ### Prerequisites
 
 - Node.js 18+ installed on your machine
+- pnpm package manager (install with `npm install -g pnpm`)
 - An OpenAI API key (get one from [OpenAI Platform](https://platform.openai.com/api-keys))
 
 ### Installation
@@ -40,11 +41,7 @@ git clone https://github.com/finntegrate/sveltekit-ai-chat
 2. **Install dependencies:**
 
 ```bash
-npm install
-# or
 pnpm install
-# or
-yarn install
 ```
 
 3. **Set up environment variables:**
@@ -68,10 +65,10 @@ OPENAI_API_KEY=sk-your-actual-openai-api-key-here
 Once you've completed the installation steps above, start the development server:
 
 ```bash
-npm run dev
+pnpm dev
 
 # or start the server and open the app in a new browser tab
-npm run dev -- --open
+pnpm dev --open
 ```
 
 The application will be available at `http://localhost:5173` (or the next available port).
@@ -93,10 +90,10 @@ src/
 To create a production version of your app:
 
 ```bash
-npm run build
+pnpm build
 ```
 
-You can preview the production build with `npm run preview`.
+You can preview the production build with `pnpm preview`.
 
 > To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
 
