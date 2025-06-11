@@ -1,6 +1,7 @@
 import { createOpenAI } from '@ai-sdk/openai';
 import { streamText, generateText } from 'ai';
 import { OPENAI_API_KEY } from '$env/static/private';
+import { dev } from '$app/environment';
 import type { ChatMessage } from '../validation/chat.js';
 import {
   RateLimitError,
@@ -204,7 +205,20 @@ export class ChatService {
   async streamChat(messages: ChatMessage[]) {
     console.log('=== Starting chat stream ===');
     console.log('Messages count:', messages.length);
-    console.log('Messages:', JSON.stringify(messages, null, 2));
+
+    // Only log full message content in development mode to protect user privacy
+    if (dev) {
+      console.log('Messages:', JSON.stringify(messages, null, 2));
+    } else {
+      // In production, only log safe metadata about messages
+      const messagesSummary = messages.map((msg, index) => ({
+        index,
+        role: msg.role,
+        contentLength: msg.content?.length || 0,
+        hasContent: !!msg.content
+      }));
+      console.log('Messages summary:', JSON.stringify(messagesSummary, null, 2));
+    }
 
     // Ensure API key is tested (cached after first test)
     await this.ensureApiKeyTested();
