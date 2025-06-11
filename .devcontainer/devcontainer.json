@@ -1,19 +1,33 @@
 {
-	"name": "Node.js & TypeScript",
-	"image": "mcr.microsoft.com/devcontainers/typescript-node:1-22-bullseye",
-	"features": {
-		"ghcr.io/devcontainers-extra/features/pnpm:2": {}
-	},
-	"mounts": [
-		"source=pnpm-store,target=/home/node/.local/share/pnpm/store,type=volume"
-	],
-	"customizations": {
-		"vscode": {
-			"extensions": [
-				"svelte.svelte-vscode",
-				"editorconfig.editorconfig"
-			]
-		}
-	},
-	"postCreateCommand": "pnpm install && git config core.autocrlf false && git config core.eol lf"
+  "name": "Node.js & TypeScript",
+  "image": "mcr.microsoft.com/devcontainers/typescript-node:1-22-bullseye",
+  "features": {
+    "ghcr.io/devcontainers-extra/features/pnpm:2": {}
+  },
+  "mounts": [
+    "source=pnpm-store,target=/home/node/.local/share/pnpm/store,type=volume"
+  ],
+  "forwardPorts": [
+    5173,
+    4173
+  ],
+  "portsAttributes": {
+    "5173": {
+      "label": "SvelteKit Dev Server",
+      "onAutoForward": "notify"
+    },
+    "4173": {
+      "label": "SvelteKit Preview Server",
+      "onAutoForward": "notify"
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "svelte.svelte-vscode",
+        "editorconfig.editorconfig"
+      ]
+    }
+  },
+  "postCreateCommand": "pnpm install && git config core.autocrlf false && git config core.eol lf"
 }
