@@ -60,6 +60,27 @@ OPENAI_API_KEY=sk-your-actual-openai-api-key-here
 
 ⚠️ **Important**: Never commit your `.env.local` file to version control. It contains sensitive API keys.
 
+## Line Ending Configuration
+
+This project is configured to use consistent line endings (LF) across all platforms to prevent issues with Windows machines changing line endings and creating large diffs.
+
+### What's Configured
+
+- **`.gitattributes`**: Enforces LF line endings for all text files
+- **`.editorconfig`**: Ensures consistent editor behavior across IDEs
+- **`.prettierrc`**: Configured with `endOfLine: "lf"`
+- **DevContainer**: Automatically configures Git settings when using the devcontainer
+
+### Manual Configuration
+
+If you prefer to configure manually:
+
+```bash
+git config core.autocrlf false
+git config core.eol lf
+git add --renormalize .
+```
+
 ## Development
 
 Once you've completed the installation steps above, start the development server:
