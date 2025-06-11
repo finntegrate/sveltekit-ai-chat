@@ -14,6 +14,42 @@ const openai = createOpenAI({
 });
 
 export class ChatService {
+  private static isApiKeyTested = false;
+  private static apiKeyTestPromise: Promise<void> | null = null;
+
+  constructor() {
+    // Initialize API key testing on first instantiation
+    if (!ChatService.isApiKeyTested && !ChatService.apiKeyTestPromise) {
+      ChatService.apiKeyTestPromise = this.initializeAndTestApiKey();
+    }
+  }
+
+  private async initializeAndTestApiKey(): Promise<void> {
+    try {
+      this.validateApiKey();
+      await this.testApiKey();
+      ChatService.isApiKeyTested = true;
+      console.log('✅ API key validation completed successfully');
+    } catch (error) {
+      ChatService.apiKeyTestPromise = null; // Reset so we can retry later
+      throw error;
+    }
+  }
+
+  private async ensureApiKeyTested(): Promise<void> {
+    if (ChatService.isApiKeyTested) {
+      return; // Already tested and valid
+    }
+
+    if (ChatService.apiKeyTestPromise) {
+      await ChatService.apiKeyTestPromise; // Wait for ongoing test
+      return;
+    }
+
+    // Start a new test
+    ChatService.apiKeyTestPromise = this.initializeAndTestApiKey();
+    await ChatService.apiKeyTestPromise;
+  }
   private validateApiKey(): void {
     console.log('Validating API key...');
 
@@ -46,9 +82,9 @@ export class ChatService {
     console.log('API key format validation passed');
   }
 
-  // Test the API key by making a small request
+  // Test the API key by making a small request (called only once during initialization)
   private async testApiKey(): Promise<void> {
-    console.log('Testing API key with a small request...');
+    console.log('🔍 Testing API key with minimal request...');
 
     try {
       const testResult = await generateText({
@@ -57,9 +93,9 @@ export class ChatService {
         maxTokens: 5
       });
 
-      console.log('API key test successful:', testResult.text);
+      console.log('✅ API key test successful:', testResult.text);
     } catch (error) {
-      console.error('API key test failed:', error);
+      console.error('❌ API key test failed:', error);
       this.handleAiError(error);
     }
   }
@@ -170,11 +206,8 @@ export class ChatService {
     console.log('Messages count:', messages.length);
     console.log('Messages:', JSON.stringify(messages, null, 2));
 
-    // Validate API key format
-    this.validateApiKey();
-
-    // Test API key with a real request to catch authentication errors early
-    await this.testApiKey();
+    // Ensure API key is tested (cached after first test)
+    await this.ensureApiKeyTested();
 
     try {
       console.log('Creating streamText request...');
@@ -189,7 +222,15 @@ export class ChatService {
 
       return response;
     } catch (error) {
-      console.error('Error in streamChat after API key validation:', error);
+      console.error('Error in streamChat:', error);
+
+      // If we get an authentication error, reset the cached state so we retest next time
+      if (error && typeof error === 'object' && 'code' in error && error.code === 401) {
+        console.log('Authentication error detected, resetting API key test cache');
+        ChatService.isApiKeyTested = false;
+        ChatService.apiKeyTestPromise = null;
+      }
+
       this.handleAiError(error);
     }
   }
