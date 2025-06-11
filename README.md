@@ -123,11 +123,13 @@ You can preview the production build with `pnpm preview`.
 ## Customization
 
 ### Styling
+
 - The project uses **daisyUI** themes. You can change the theme by modifying the `data-theme` attribute in `app.html`
 - Custom styles can be added to `src/app.css`
 - Component-specific styles use Tailwind CSS classes
 
 ### AI Configuration
+
 - Model settings can be adjusted in `src/routes/api/chat/+server.ts`
 - Support for different OpenAI models (GPT-3.5, GPT-4, etc.)
 - Streaming and tool integration capabilities
