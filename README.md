@@ -1,5 +1,7 @@
 # SvelteKit AI Chat Assistant
 
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/finntegrate/sveltekit-ai-chat?quickstart=1)
+
 A modern, responsive chatbot application built with SvelteKit, showcasing how to create an AI-powered chat interface using the Vercel AI SDK. This project demonstrates best practices for building conversational AI applications with a beautiful, professional UI powered by daisyUI and Tailwind CSS.
 
 ## Features
