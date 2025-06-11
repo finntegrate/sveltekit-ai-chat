@@ -2,11 +2,12 @@ import type { RequestHandler } from './$types';
 import { validateChatRequest } from '$lib/validation/chat.js';
 import { handleError } from '$lib/errors/index.js';
 import { ChatService } from '$lib/services/chat.js';
+import { randomUUID } from 'node:crypto';
 
 const chatService = new ChatService();
 
 export const POST: RequestHandler = async ({ request }) => {
-  const requestId = Math.random().toString(36).substring(7);
+  const requestId = randomUUID();
   console.log(`=== Chat API Request ${requestId} ===`);
   console.log('Timestamp:', new Date().toISOString());
 
