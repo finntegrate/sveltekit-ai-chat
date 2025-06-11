@@ -59,7 +59,7 @@ export class ChatService {
     }
 
     console.log(
-      `API key present: ${OPENAI_API_KEY.length} characters, starts with: ${OPENAI_API_KEY.substring(0, 10)}...`
+      `API key present: ${OPENAI_API_KEY.length} characters, starts with: ${OPENAI_API_KEY.substring(0, 4)}...`
     );
 
     // Basic API key format validation
