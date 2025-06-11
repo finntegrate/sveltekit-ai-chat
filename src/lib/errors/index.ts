@@ -37,7 +37,7 @@ export class QuotaExceededError extends ServiceError {
 
 export class AuthenticationError extends ServiceError {
   constructor(message: string = 'Authentication failed') {
-    super(message, 503);
+    super(message, 401);
     this.name = 'AuthenticationError';
   }
 }
