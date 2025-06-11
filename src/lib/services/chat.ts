@@ -3,170 +3,180 @@ import { streamText, generateText } from 'ai';
 import { OPENAI_API_KEY } from '$env/static/private';
 import type { ChatMessage } from '../validation/chat.js';
 import {
-	RateLimitError,
-	QuotaExceededError,
-	AuthenticationError,
-	ServiceError
+  RateLimitError,
+  QuotaExceededError,
+  AuthenticationError,
+  ServiceError
 } from '../errors/index.js';
 
 const openai = createOpenAI({
-	apiKey: OPENAI_API_KEY,
+  apiKey: OPENAI_API_KEY
 });
 
 export class ChatService {
-	private validateApiKey(): void {
-		console.log('Validating API key...');
+  private validateApiKey(): void {
+    console.log('Validating API key...');
 
-		if (!OPENAI_API_KEY) {
-			console.error('OpenAI API key is not configured in environment variables');
-			throw new ServiceError('Service configuration error. Please try again later.', 500);
-		}
+    if (!OPENAI_API_KEY) {
+      console.error('OpenAI API key is not configured in environment variables');
+      throw new ServiceError('Service configuration error. Please try again later.', 500);
+    }
 
-		console.log(`API key present: ${OPENAI_API_KEY.length} characters, starts with: ${OPENAI_API_KEY.substring(0, 10)}...`);
+    console.log(
+      `API key present: ${OPENAI_API_KEY.length} characters, starts with: ${OPENAI_API_KEY.substring(0, 10)}...`
+    );
 
-		// Basic API key format validation
-		if (!OPENAI_API_KEY.startsWith('sk-')) {
-			console.error('Invalid OpenAI API key format detected - does not start with sk-');
-			throw new AuthenticationError('Service authentication error. Please try again later.');
-		}
+    // Basic API key format validation
+    if (!OPENAI_API_KEY.startsWith('sk-')) {
+      console.error('Invalid OpenAI API key format detected - does not start with sk-');
+      throw new AuthenticationError('Service authentication error. Please try again later.');
+    }
 
-		// Check for obviously invalid keys (too short, contains placeholders, etc.)
-		if (OPENAI_API_KEY.length < 20 ||
-			OPENAI_API_KEY.includes('your_') ||
-			OPENAI_API_KEY.includes('xxx') ||
-			OPENAI_API_KEY.includes('...')) {
-			console.error('OpenAI API key appears to be invalid or placeholder');
-			throw new AuthenticationError('Service authentication error. Please try again later.');
-		}
+    // Check for obviously invalid keys (too short, contains placeholders, etc.)
+    if (
+      OPENAI_API_KEY.length < 20 ||
+      OPENAI_API_KEY.includes('your_') ||
+      OPENAI_API_KEY.includes('xxx') ||
+      OPENAI_API_KEY.includes('...')
+    ) {
+      console.error('OpenAI API key appears to be invalid or placeholder');
+      throw new AuthenticationError('Service authentication error. Please try again later.');
+    }
 
-		console.log('API key format validation passed');
-	}
+    console.log('API key format validation passed');
+  }
 
-	// Test the API key by making a small request
-	private async testApiKey(): Promise<void> {
-		console.log('Testing API key with a small request...');
+  // Test the API key by making a small request
+  private async testApiKey(): Promise<void> {
+    console.log('Testing API key with a small request...');
 
-		try {
-			const testResult = await generateText({
-				model: openai('gpt-4o'),
-				prompt: 'Say "test"',
-				maxTokens: 5,
-			});
+    try {
+      const testResult = await generateText({
+        model: openai('gpt-4o'),
+        prompt: 'Say "test"',
+        maxTokens: 5
+      });
 
-			console.log('API key test successful:', testResult.text);
-		} catch (error) {
-			console.error('API key test failed:', error);
-			this.handleAiError(error);
-		}
-	} private handleAiError(error: any): never {
-		const message = error?.message?.toLowerCase() || '';
-		const errorCode = error?.code || error?.status || error?.statusCode;
+      console.log('API key test successful:', testResult.text);
+    } catch (error) {
+      console.error('API key test failed:', error);
+      this.handleAiError(error);
+    }
+  }
+  private handleAiError(error: any): never {
+    const message = error?.message?.toLowerCase() || '';
+    const errorCode = error?.code || error?.status || error?.statusCode;
 
-		// Extract clean error information for developers
-		console.error('🚨 ============ AI SERVICE ERROR ============ 🚨');
-		console.error('ERROR SUMMARY:');
-		console.error('  Type:', error?.name || 'Unknown');
-		console.error('  Status Code:', errorCode);
-		console.error('  Message:', error?.message);
+    // Extract clean error information for developers
+    console.error('🚨 ============ AI SERVICE ERROR ============ 🚨');
+    console.error('ERROR SUMMARY:');
+    console.error('  Type:', error?.name || 'Unknown');
+    console.error('  Status Code:', errorCode);
+    console.error('  Message:', error?.message);
 
-		// Extract and display responseBody error details if available
-		if (error?.responseBody) {
-			console.error('📄 RESPONSE BODY ERROR DETAILS:');
-			try {
-				const responseData = typeof error.responseBody === 'string'
-					? JSON.parse(error.responseBody)
-					: error.responseBody;
+    // Extract and display responseBody error details if available
+    if (error?.responseBody) {
+      console.error('📄 RESPONSE BODY ERROR DETAILS:');
+      try {
+        const responseData =
+          typeof error.responseBody === 'string'
+            ? JSON.parse(error.responseBody)
+            : error.responseBody;
 
-				if (responseData?.error) {
-					console.error('  OpenAI Error Code:', responseData.error.code);
-					console.error('  OpenAI Error Type:', responseData.error.type);
-					console.error('  OpenAI Error Message:', responseData.error.message);
-					console.error('  OpenAI Error Param:', responseData.error.param);
-				}
-			} catch (parseError) {
-				console.error('  Raw Response Body:', error.responseBody);
-			}
-		}
+        if (responseData?.error) {
+          console.error('  OpenAI Error Code:', responseData.error.code);
+          console.error('  OpenAI Error Type:', responseData.error.type);
+          console.error('  OpenAI Error Message:', responseData.error.message);
+          console.error('  OpenAI Error Param:', responseData.error.param);
+        }
+      } catch (parseError) {
+        console.error('  Raw Response Body:', error.responseBody);
+      }
+    }
 
-		// Display data.error if available (alternative error format)
-		if (error?.data?.error) {
-			console.error('📊 DATA ERROR DETAILS:');
-			console.error('  Code:', error.data.error.code);
-			console.error('  Type:', error.data.error.type);
-			console.error('  Message:', error.data.error.message);
-		}
+    // Display data.error if available (alternative error format)
+    if (error?.data?.error) {
+      console.error('📊 DATA ERROR DETAILS:');
+      console.error('  Code:', error.data.error.code);
+      console.error('  Type:', error.data.error.type);
+      console.error('  Message:', error.data.error.message);
+    }
 
-		// Additional context
-		if (error?.url) {
-			console.error('🌐 REQUEST URL:', error.url);
-		}
+    // Additional context
+    if (error?.url) {
+      console.error('🌐 REQUEST URL:', error.url);
+    }
 
-		console.error('🔧 DEVELOPER ACTION REQUIRED:');
+    console.error('🔧 DEVELOPER ACTION REQUIRED:');
 
-		if (errorCode === 429 || /rate.?limit/i.test(message)) {
-			console.error('  ➤ Rate limit exceeded - implement retry logic or reduce request frequency');
-			throw new RateLimitError('Rate limit exceeded. Please try again later.');
-		}
+    if (errorCode === 429 || /rate.?limit/i.test(message)) {
+      console.error('  ➤ Rate limit exceeded - implement retry logic or reduce request frequency');
+      throw new RateLimitError('Rate limit exceeded. Please try again later.');
+    }
 
-		if (errorCode === 402 || /quota|billing|insufficient.*funds/i.test(message)) {
-			console.error('  ➤ Check OpenAI billing and account limits at https://platform.openai.com/usage');
-			throw new QuotaExceededError('Service quota exceeded. Please try again later.');
-		}
+    if (errorCode === 402 || /quota|billing|insufficient.*funds/i.test(message)) {
+      console.error(
+        '  ➤ Check OpenAI billing and account limits at https://platform.openai.com/usage'
+      );
+      throw new QuotaExceededError('Service quota exceeded. Please try again later.');
+    }
 
-		if (errorCode === 401 || /invalid.*key|authentication|unauthorized/i.test(message)) {
-			console.error('  ➤ Check OPENAI_API_KEY in .env.local - get a valid key from https://platform.openai.com/api-keys');
-			throw new AuthenticationError('Service authentication error. Please try again later.');
-		}
+    if (errorCode === 401 || /invalid.*key|authentication|unauthorized/i.test(message)) {
+      console.error(
+        '  ➤ Check OPENAI_API_KEY in .env.local - get a valid key from https://platform.openai.com/api-keys'
+      );
+      throw new AuthenticationError('Service authentication error. Please try again later.');
+    }
 
-		if (errorCode === 400 || /bad.?request/i.test(message)) {
-			console.error('  ➤ Review request format and parameters');
-			throw new ServiceError('Invalid request format. Please try again.', 400);
-		}
+    if (errorCode === 400 || /bad.?request/i.test(message)) {
+      console.error('  ➤ Review request format and parameters');
+      throw new ServiceError('Invalid request format. Please try again.', 400);
+    }
 
-		console.error('  ➤ Unhandled error - check logs above for details');
-		console.error('🚨 ========================================== 🚨');
+    console.error('  ➤ Unhandled error - check logs above for details');
+    console.error('🚨 ========================================== 🚨');
 
-		// Detailed error dump for debugging
-		console.error('FULL ERROR OBJECT FOR DEBUGGING:', {
-			name: error?.name,
-			message: error?.message,
-			code: errorCode,
-			statusCode: error?.statusCode,
-			url: error?.url,
-			isRetryable: error?.isRetryable,
-			responseHeaders: error?.responseHeaders,
-			stack: error?.stack
-		});
+    // Detailed error dump for debugging
+    console.error('FULL ERROR OBJECT FOR DEBUGGING:', {
+      name: error?.name,
+      message: error?.message,
+      code: errorCode,
+      statusCode: error?.statusCode,
+      url: error?.url,
+      isRetryable: error?.isRetryable,
+      responseHeaders: error?.responseHeaders,
+      stack: error?.stack
+    });
 
-		throw new ServiceError('AI service temporarily unavailable. Please try again later.', 503);
-	}
+    throw new ServiceError('AI service temporarily unavailable. Please try again later.', 503);
+  }
 
-	async streamChat(messages: ChatMessage[]) {
-		console.log('=== Starting chat stream ===');
-		console.log('Messages count:', messages.length);
-		console.log('Messages:', JSON.stringify(messages, null, 2));
+  async streamChat(messages: ChatMessage[]) {
+    console.log('=== Starting chat stream ===');
+    console.log('Messages count:', messages.length);
+    console.log('Messages:', JSON.stringify(messages, null, 2));
 
-		// Validate API key format
-		this.validateApiKey();
+    // Validate API key format
+    this.validateApiKey();
 
-		// Test API key with a real request to catch authentication errors early
-		await this.testApiKey();
+    // Test API key with a real request to catch authentication errors early
+    await this.testApiKey();
 
-		try {
-			console.log('Creating streamText request...');
-			const result = await streamText({
-				model: openai('gpt-4o'),
-				messages,
-			});
+    try {
+      console.log('Creating streamText request...');
+      const result = await streamText({
+        model: openai('gpt-4o'),
+        messages
+      });
 
-			console.log('streamText successful, converting to DataStreamResponse...');
-			const response = result.toDataStreamResponse();
-			console.log('DataStreamResponse created successfully');
+      console.log('streamText successful, converting to DataStreamResponse...');
+      const response = result.toDataStreamResponse();
+      console.log('DataStreamResponse created successfully');
 
-			return response;
-		} catch (error) {
-			console.error('Error in streamChat after API key validation:', error);
-			this.handleAiError(error);
-		}
-	}
+      return response;
+    } catch (error) {
+      console.error('Error in streamChat after API key validation:', error);
+      this.handleAiError(error);
+    }
+  }
 }

@@ -4,13 +4,8 @@
   "features": {
     "ghcr.io/devcontainers-extra/features/pnpm:2": {}
   },
-  "mounts": [
-    "source=pnpm-store,target=/home/node/.local/share/pnpm/store,type=volume"
-  ],
-  "forwardPorts": [
-    5173,
-    4173
-  ],
+  "mounts": ["source=pnpm-store,target=/home/node/.local/share/pnpm/store,type=volume"],
+  "forwardPorts": [5173, 4173],
   "portsAttributes": {
     "5173": {
       "label": "SvelteKit Dev Server",
@@ -23,10 +18,7 @@
   },
   "customizations": {
     "vscode": {
-      "extensions": [
-        "svelte.svelte-vscode",
-        "editorconfig.editorconfig"
-      ]
+      "extensions": ["svelte.svelte-vscode", "editorconfig.editorconfig"]
     }
   },
   "postCreateCommand": "pnpm install && git config core.autocrlf false && git config core.eol lf"
