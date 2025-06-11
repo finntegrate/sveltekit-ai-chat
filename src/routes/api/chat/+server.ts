@@ -15,7 +15,38 @@ export const POST: RequestHandler = async ({ request }) => {
     console.log(`[${requestId}] Parsing request body...`);
     const body = await request.json();
 
-    console.log(`[${requestId}] Request body:`, JSON.stringify(body, null, 2));
+    // Safely log request body with sanitization and error handling
+    try {
+      const sanitizedBody = {
+        ...body,
+        // Redact any potentially sensitive fields
+        apiKey: body.apiKey ? '[REDACTED]' : undefined,
+        token: body.token ? '[REDACTED]' : undefined,
+        password: body.password ? '[REDACTED]' : undefined,
+        secret: body.secret ? '[REDACTED]' : undefined,
+        // Keep messages but truncate if too long for readability
+        messages: Array.isArray(body.messages)
+          ? body.messages.map((msg: unknown) => {
+              const message = msg as { content?: string; [key: string]: unknown };
+              return {
+                ...message,
+                content:
+                  typeof message.content === 'string' && message.content.length > 200
+                    ? `${message.content.substring(0, 200)}... [truncated]`
+                    : message.content
+              };
+            })
+          : body.messages
+      };
+
+      console.log(`[${requestId}] Request body:`, JSON.stringify(sanitizedBody, null, 2));
+    } catch (stringifyError) {
+      console.log(
+        `[${requestId}] Request body: [Unable to stringify - ${stringifyError instanceof Error ? stringifyError.message : 'Unknown error'}]`
+      );
+      console.log(`[${requestId}] Request body keys:`, Object.keys(body));
+    }
+
     console.log(`[${requestId}] Validating request...`);
 
     const { messages } = validateChatRequest(body);
